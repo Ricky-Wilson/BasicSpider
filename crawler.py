@@ -23,7 +23,7 @@ class Spider(object):
         ''' Download a web page.
         If anything goes wrong with the download.
         get_page will return None
-        """
+        '''
         try:
             return requests.get(url).text.encode('utf-8')
         except Exception as e:
