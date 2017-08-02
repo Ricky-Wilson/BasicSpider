@@ -1,8 +1,6 @@
-
 '''
-Scrape
+A basic web crawler.
 '''
-
 import requests
 from urlparse import urlparse, urljoin, urldefrag
 from bs4 import BeautifulSoup, SoupStrainer
