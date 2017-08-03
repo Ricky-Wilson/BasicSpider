@@ -1,10 +1,12 @@
 '''
 A basic web crawler.
 '''
-import requests
+import os
 import re
 import logging
 from urlparse import urlparse, urljoin, urldefrag
+import requests
+from cookielib import LWPCookieJar
 from bs4 import BeautifulSoup, SoupStrainer
 from fake_useragent import UserAgent
 
@@ -31,9 +33,21 @@ class Spider(object):
     crawled = set()
 
     def __init__(self, seed, **options):
+        # Setup the link queue
         self.seed = seed
         self.to_crawl = set([seed])
         self.crawled = set()
+        self.session = requests.Session()
+        cookiejar = LWPCookieJar('cookiejar')
+        self.session.cookies = cookiejar
+
+        if not os.path.exists('cookiejar'):
+            # Create a new cookies file and set our Session's cookies
+            self.session.cookies.save()
+        else:
+            # Load saved cookies from the file and use them in a request
+            self.session.cookies.load(ignore_discard=True)
+
         # The spider is restricted to just one domain.
         # The domain of the seed.
         self.domain = urlparse(seed).netloc
@@ -69,13 +83,15 @@ class Spider(object):
             return
 
         try:
-            response = requests.get(
+            response = self.session.get(
                 url,
                 headers=headers,
                 verify=verify,
                 timeout=timeout)
+            self.session.cookies.save()
             return response.text.encode('utf-8')
-        except Exception:
+        except Exception as e:
+            print e
             return None
 
     def extract_links(self, url):
@@ -94,10 +110,9 @@ class Spider(object):
     def crawl(self):
         while self.to_crawl:
             link = self.to_crawl.pop()
-            print link
             self.crawled.add(link)
             self.extract_links(link)
 
 
-crawler = Spider('http://www.google.com')
+crawler = Spider('http://www.google.com', log_level='debug')
 crawler.crawl()
