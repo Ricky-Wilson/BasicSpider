@@ -59,6 +59,7 @@ class Spider(object):
         options.setdefault('timeout', DEFAULT_TIMEOUT)
         options.setdefault('logging', True)
         options.setdefault('log_level', LOG_LEVEL)
+        options.setdefault('allow_redirects', True)
         if options['logging']:
             level = options['log_level']
             if level == 'info':
@@ -67,6 +68,7 @@ class Spider(object):
                 logging.basicConfig(level=logging.WARN)
             if level == 'debug':
                 logging.basicConfig(level=logging.DEBUG)
+
         self.options = options
 
     def get_page(self, url):
@@ -87,7 +89,8 @@ class Spider(object):
                 url,
                 headers=headers,
                 verify=verify,
-                timeout=timeout)
+                timeout=timeout,
+                allow_redirects=self.options['allow_redirects'])
             self.session.cookies.save()
             return response.text.encode('utf-8')
         except Exception as e:
@@ -114,5 +117,8 @@ class Spider(object):
             self.extract_links(link)
 
 
-crawler = Spider('http://www.google.com', log_level='debug')
+crawler = Spider(
+    'http://www.google.com',
+    log_level='debug',
+    allow_redirects=0)
 crawler.crawl()
